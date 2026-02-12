@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Login | Livvra{% endblock %}
+
+{% block head %}
+<style>
+/* ===== LOGIN PAGE WRAPPER ===== */
+.login-wrapper {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    background: linear-gradient(135deg, #0f172a, #020617);
+}
+
+/* ===== LEFT SIDE (IMAGE / BRAND) ===== */
+.login-left {
+    flex: 1;
+    background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.35),
+        rgba(99, 102, 241, 0.35)
+    ),
+    url("https://images.unsplash.com/photo-1560518883-ce09059eeffa") center/cover no-repeat;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+}
+
+.login-left h1 {
+    font-size: 34px;
+    font-weight: 800;
+}
+
+.login-left p {
+    max-width: 420px;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.brand-badge {
+    background: rgba(255,255,255,0.15);
+    padding: 8px 14px;
+    border-radius: 999px;
+    width: fit-content;
+    font-weight: 600;
+}
+
+/* ===== RIGHT SIDE (FORM) ===== */
+.login-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #020617;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: #020617;
+    border-radius: 18px;
+    padding: 36px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+    color: #e5e7eb;
+}
+
+.login-card h2 {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.login-card p {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+/* ===== INPUTS ===== */
+.form-control {
+    background: #020617;
+    border: 1px solid #1e293b;
+    color: #e5e7eb;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.form-control:focus {
+    background: #020617;
+    color: #fff;
+    border-color: #38bdf8;
+    box-shadow: none;
+}
+
+/* ===== BUTTON ===== */
+.btn-login {
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    border: none;
+    padding: 12px;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(56,189,248,0.35);
+}
+
+/* ===== LINKS ===== */
+.login-links a {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-links a:hover {
+    text-decoration: underline;
+}
+
+/* ===== ERROR ===== */
+.alert-danger {
+    background: rgba(220, 38, 38, 0.15);
+    border: none;
+    color: #fecaca;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    .login-left {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="login-wrapper">
+
+    <!-- LEFT BRAND -->
+    <div class="login-left">
+        <div class="brand-badge">Livvra.ai</div>
+
+        <div>
+            <h1>Smart Real Estate Decisions</h1>
+            <p>
+                Predict property prices, analyze risk, and make confident
+                Buy, Hold, or Sell decisions powered by AI intelligence.
+            </p>
+        </div>
+
+        <small>© {{ current_year if current_year else "2026" }} Livvra.ai</small>
+    </div>
+
+    <!-- RIGHT FORM -->
+    <div class="login-right">
+        <form method="POST" class="login-card">
+
+            <h2>Continue Livvra.ai</h2>
+            <p class="mb-4">Log in to continue to Livvra.ai</p>
+
+            {% if error %}
+            <div class="alert alert-danger mb-3">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <input
+                    type="email"
+                    name="email"
+                    class="form-control"
+                    placeholder="Email address"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <input
+                    type="password"
+                    name="password"
+                    class="form-control"
+                    placeholder="Password"
+                    required>
+            </div>
+
+            <button class="btn btn-login w-100 mb-3">
+                Login
+            </button>
+
+            <!-- forgot password link -->
+            <div class="text-end mb-3">
+                <a href="{{ url_for('forgot_password') }}" class="text-muted" style="font-size: 14px;">
+                    Forgot password?
+                </a>
+            </div>
+
+
+            <div class="login-links text-center">
+                New here?
+                <a href="{{ url_for('register') }}">Create account</a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
