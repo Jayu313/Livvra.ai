@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Home | Livvra.ai{% endblock %}
+
+{% block head %}
+<style>
+/* ===== HERO ===== */
+.hero {
+    min-height: calc(100vh - 90px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(56,189,248,0.15), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(99,102,241,0.15), transparent 40%);
+}
+
+.hero-box {
+    max-width: 900px;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.hero h1 span {
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+    font-size: 1.15rem;
+    color: #64748b;
+    margin-top: 18px;
+}
+
+/* CTA */
+.hero-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.hero-actions a {
+    padding: 12px 26px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-primary-hero {
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
+    color: white;
+    box-shadow: 0 10px 30px rgba(56,189,248,0.35);
+}
+
+.btn-outline-hero {
+    border: 2px solid #38bdf8;
+    color: #38bdf8;
+}
+
+/* ===== FEATURES ===== */
+.features {
+    padding: 80px 0;
+}
+
+.feature-card {
+    border-radius: 18px;
+    padding: 30px;
+    height: 100%;
+    background: white;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px);
+}
+
+.feature-icon {
+    font-size: 28px;
+    color: #38bdf8;
+    margin-bottom: 15px;
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+body.dark-mode .feature-card {
+    background: #020617;
+    border: 1px solid #1e293b;
+}
+
+body.dark-mode .hero p {
+    color: #94a3b8;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+    <div class="hero-box">
+
+        <h1>
+            Smart Real Estate Decisions<br>
+            Powered by <span>AI</span>
+        </h1>
+
+        <p>
+            Livvra.ai helps you predict property prices, analyze risk,
+            and decide whether to <b>Buy</b>, <b>Hold</b>, or <b>Sell</b>
+            using intelligent forecasting models.
+        </p>
+
+        <div class="hero-actions">
+            {% if session.get("user") %}
+                <a href="{{ url_for('dashboard') }}" class="btn-primary-hero">
+                    Go to Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn-primary-hero">
+                    Get Started Free
+                </a>
+                <a href="{{ url_for('login') }}" class="btn-outline-hero">
+                    Login
+                </a>
+            {% endif %}
+        </div>
+
+    </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section class="features">
+    <div class="container">
+
+        <div class="row text-center mb-5">
+            <h2 class="fw-bold">Why Livvra.ai?</h2>
+            <p class="text-muted">
+                Built for buyers, sellers, investors, and analysts.
+            </p>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <h5>AI Price Forecasting</h5>
+                    <p class="text-muted">
+                        Predict future property prices using intelligent
+                        growth, depreciation, and recovery models.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h5>Buy / Hold / Sell Insights</h5>
+                    <p class="text-muted">
+                        Clear recommendations with confidence and
+                        risk analysis for smarter decisions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-building-user"></i>
+                    </div>
+                    <h5>Property Marketplace</h5>
+                    <p class="text-muted">
+                        List properties for sale or rent, explore active
+                        listings, and connect with owners.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
