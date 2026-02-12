@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Livvra{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+.card {
+    border-radius: 14px;
+}
+
+#map {
+    height: 230px;
+    border-radius: 12px;
+}
+
+.badge-box {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* ===== MAP MARKER GLOW ===== */
+.glow-marker {
+    position: relative;
+    font-size: 22px;
+}
+
+.glow-marker::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    background: rgba(56, 189, 248, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulseGlow 1.8s ease-out infinite;
+    z-index: -1;
+}
+
+@keyframes pulseGlow {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0.8; }
+    70% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+    100% { opacity: 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h4 class="mb-3">AI Property Price Forecast</h4>
+
+<!-- ================= DASHBOARD STATS ================= -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6 class="text-muted">Total Predictions</h6>
+            <h2 class="counter" data-target="{{ stats.total if stats else 120 }}">0</h2>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm p-3 text-center">
+            <h6 class="text-muted">Avg Profit</h6>
+            <h2 class="counter" data-target="{{ stats.avg_profit if stats else 350000 }}">₹0</h2>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm p-3 text-center">
+            <h6 class="text-muted">BUY</h6>
+            <h2 class="counter text-success" data-target="{{ stats.buy if stats else 42 }}">0</h2>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm p-3 text-center">
+            <h6 class="text-muted">HOLD</h6>
+            <h2 class="counter text-warning" data-target="{{ stats.hold if stats else 28 }}">0</h2>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm p-3 text-center">
+            <h6 class="text-muted">SELL</h6>
+            <h2 class="counter text-danger" data-target="{{ stats.sell if stats else 50 }}">0</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+
+<!-- ================= LEFT PANEL ================= -->
+<div class="col-lg-4">
+<div class="card p-3 shadow-sm">
+
+<input id="area" class="form-control mb-2" placeholder="Area (sqft)">
+<input id="price" class="form-control mb-2" placeholder="Current Price (₹)">
+<input id="age" class="form-control mb-2" placeholder="Property Age (years)">
+
+<select id="years" class="form-control mb-2">
+{% for i in range(1,11) %}
+<option value="{{ i }}">{{ i }} Year</option>
+{% endfor %}
+</select>
+
+<select id="scenario" class="form-control mb-2">
+<option value="neutral">Neutral</option>
+<option value="optimistic">Optimistic</option>
+<option value="pessimistic">Pessimistic</option>
+</select>
+
+<hr>
+
+<div id="map"></div>
+<p class="small text-muted mt-1" id="locationStatus">Location: Not selected</p>
+
+<button id="predictBtn" class="btn btn-primary w-100 mt-2" disabled>
+Predict
+</button>
+
+<hr>
+
+<p><b>Final Price:</b> <span id="result">—</span></p>
+
+<p><b>Recommendation:</b>
+<span id="recommendation" class="badge-box">—</span></p>
+
+<p id="confidenceInfo" class="text-muted"></p>
+<p>Best Year to Sell: <b id="bestYear">—</b></p>
+<p>Profit / Loss: <b id="profitLoss">—</b></p>
+<p>Risk Level: <b id="riskScore">—</b></p>
+
+<div class="alert alert-info mt-2" id="explanationBox" style="display:none"></div>
+
+</div>
+</div>
+
+<!-- ================= RIGHT PANEL ================= -->
+<div class="col-lg-8">
+<div class="card p-3 shadow-sm" style="height:460px">
+<canvas id="chart"></canvas>
+</div>
+</div>
+
+</div>
+
+<script>
+let map, marker, locationSelected = false;
+
+document.addEventListener("DOMContentLoaded", () => {
+    map = L.map("map").setView([22.5,79],5);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+
+    map.on("click", e => {
+        locationSelected = true;
+        if(marker) map.removeLayer(marker);
+
+        marker = L.marker(e.latlng,{
+            icon:L.divIcon({
+                className:"glow-marker",
+                html:"📍",
+                iconSize:[24,24],
+                iconAnchor:[12,12]
+            })
+        }).addTo(map);
+
+        locationStatus.innerText="Location: Selected";
+        updateBtn();
+    });
+});
+
+function updateBtn(){
+    predictBtn.disabled = !(area.value && price.value && years.value && locationSelected);
+}
+
+const chart = new Chart(document.getElementById("chart"),{
+    type:"line",
+    data:{labels:[],datasets:[{data:[],borderWidth:2,tension:0.35}]},
+    options:{responsive:true,maintainAspectRatio:false}
+});
+
+async function runPrediction(){
+    if(predictBtn.disabled) return;
+
+    const payload = {
+        area: area.value,
+        price: price.value,
+        years: years.value,
+        age: age.value || 5,
+        scenario: scenario.value,
+        intent: "BUY",
+        lat: marker.getLatLng().lat,
+        lng: marker.getLatLng().lng
+    };
+
+    const res = await fetch("/api/predict",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload)
+    });
+
+    const d = await res.json();
+
+    chart.data.labels = d.years.map(y=>y+" Yr");
+    chart.data.datasets[0].data = d.prices;
+    chart.update();
+
+    result.innerText = "₹ " + d.final_price + " ("+d.price_change+"%)";
+    confidenceInfo.innerText = "Confidence: " + Math.round(d.confidence*100) + "%";
+    recommendation.innerText = d.recommendation;
+
+    bestYear.innerText = d.best_year + " (₹ " + d.best_year_price + ")";
+    profitLoss.innerText = "₹ " + d.profit_loss;
+    riskScore.innerText = d.risk;
+
+    explanationBox.innerText = "Why " + d.recommendation + "? " + d.explanation;
+    explanationBox.style.display = "block";
+
+    /* 🔄 LIVE COUNTER UPDATE */
+    refreshDashboardCounters();
+}
+
+["area","price","years","age","scenario"].forEach(i=>{
+    document.getElementById(i).addEventListener("input",updateBtn);
+});
+predictBtn.onclick = runPrediction;
+</script>
+
+<script>
+/* ===== INITIAL COUNTER ANIMATION ===== */
+function animateCounters(){
+    document.querySelectorAll(".counter").forEach(counter=>{
+        const target=+counter.dataset.target;
+        let current=0;
+        const step=Math.max(target/80,1);
+
+        const tick=()=>{
+            current+=step;
+            if(current<target){
+                counter.innerText=counter.innerText.includes("₹")
+                    ? "₹"+Math.floor(current).toLocaleString()
+                    : Math.floor(current);
+                requestAnimationFrame(tick);
+            } else {
+                counter.innerText=counter.innerText.includes("₹")
+                    ? "₹"+target.toLocaleString()
+                    : target;
+            }
+        };
+        tick();
+    });
+}
+document.addEventListener("DOMContentLoaded",animateCounters);
+</script>
+
+<script>
+/* ===== LIVE DASHBOARD COUNTER UPDATE ===== */
+async function refreshDashboardCounters(){
+    const res = await fetch("/api/dashboard-stats");
+    const s = await res.json();
+
+    applyCounter(0,s.total);
+    applyCounter(1,Math.round(s.avg_profit),true);
+    applyCounter(2,s.buy);
+    applyCounter(3,s.hold);
+    applyCounter(4,s.sell);
+}
+
+function applyCounter(idx,newVal,isMoney=false){
+    const el=document.querySelectorAll(".counter")[idx];
+    const old=+el.dataset.target||0;
+    el.dataset.target=newVal;
+    animateDelta(el,old,newVal,isMoney);
+}
+
+function animateDelta(el,start,end,isMoney){
+    let val=start;
+    const step=Math.max(Math.abs(end-start)/30,1);
+
+    const tick=()=>{
+        val+=step*Math.sign(end-start);
+        if((end-val)*(end-start)>0){
+            el.innerText=isMoney
+                ?"₹"+Math.floor(val).toLocaleString()
+                :Math.floor(val);
+            requestAnimationFrame(tick);
+        } else {
+            el.innerText=isMoney?"₹"+end.toLocaleString():end;
+            showDelta(el,end-start);
+        }
+    };
+    tick();
+}
+
+function showDelta(el,d){
+    if(!d) return;
+    const b=document.createElement("span");
+    b.className="badge bg-primary ms-2";
+    b.innerText=(d>0?"+":"")+d;
+    el.appendChild(b);
+    setTimeout(()=>b.remove(),1500);
+}
+</script>
+
+{% endblock %}
