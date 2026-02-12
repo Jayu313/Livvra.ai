@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Create Account | Livvra{% endblock %}
+
+{% block head %}
+<style>
+.register-wrapper {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    background: linear-gradient(135deg, #0f172a, #020617);
+}
+
+.register-left {
+    flex: 1;
+    background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.35),
+        rgba(99, 102, 241, 0.35)
+    ),
+    url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c") center/cover no-repeat;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: white;
+}
+
+.register-left h1 {
+    font-size: 34px;
+    font-weight: 800;
+}
+
+.register-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #020617;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 440px;
+    background: #020617;
+    border-radius: 18px;
+    padding: 36px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+    color: #e5e7eb;
+}
+
+.form-control {
+    background: #020617;
+    border: 1px solid #1e293b;
+    color: #e5e7eb;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.form-control:focus {
+    border-color: #38bdf8;
+    box-shadow: none;
+}
+
+.btn-register {
+    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    border: none;
+    padding: 12px;
+    font-weight: 600;
+    border-radius: 12px;
+}
+
+.oauth-btn {
+    border: 1px solid #1e293b;
+    background: #020617;
+    color: #e5e7eb;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.oauth-btn:hover {
+    border-color: #38bdf8;
+}
+
+@media (max-width: 900px) {
+    .register-left { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="register-wrapper">
+
+    <!-- LEFT -->
+    <div class="register-left">
+        <div><strong>Livvra.ai</strong></div>
+        <h1>Create your account</h1>
+        <small>AI-powered real estate decisions</small>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="register-right">
+        <form method="POST" class="register-card">
+
+            <h3 class="mb-1">Get started with livvra account</h3>
+            <p class="text-muted mb-4">Create your Livvra account</p>
+
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <div class="mb-3">
+                <input type="text" name="name" class="form-control" placeholder="Full name" required>
+            </div>
+
+            <div class="mb-3">
+                <input type="email" name="email" class="form-control" placeholder="Email address" required>
+            </div>
+
+            <div class="mb-3">
+                <input type="password" name="password" class="form-control" placeholder="Password" required>
+            </div>
+
+            <div class="mb-3">
+                <input type="password" name="confirmpassword" class="form-control" placeholder="Confirm Password" required>
+            </div>
+
+            <div>
+                <input type="contact" name="contact" class="form-control" placeholder="Contact Number" required>
+            </div>
+
+            <button class="btn btn-register w-100 mb-3 form-control">
+                Create account
+            </button>
+
+            <!-- OAUTH -->
+            <div class="text-center mb-2 text-muted">or continue with</div>
+
+            <div class="d-flex gap-2 mb-3">
+                <a href="{{ url_for('google_login') }}" class="oauth-btn w-50 text-center">
+                    <img src="{{ url_for('static', filename='icon/google.png') }}"> Google
+                </a>
+                <a href="{{ url_for('apple_login') }}" class="oauth-btn w-50 text-center">
+                    <img src="{{ url_for('static', filename='icon/apple.png') }}"> Apple
+                </a>
+            </div>
+
+            <div class="text-center">
+                Already have an account?
+                <a href="{{ url_for('login') }}" style="color:#38bdf8">Login</a>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
